@@ -1,0 +1,7 @@
+src/**/*.spec.ts
+jest.config.js
+.eslintrc.json
+.github/
+coverage/
+node_modules/
+tsconfig.build.json
