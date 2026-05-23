@@ -30,7 +30,7 @@ describe('JobQueue Integration', () => {
         POSTGRES_PASSWORD: 'secret',
         POSTGRES_DB: 'gkit',
       })
-      .withWaitStrategy(Wait.forListeningPort())
+      .withWaitStrategy(Wait.forListeningPorts())
       .start();
 
     pool = new Pool({
@@ -43,7 +43,7 @@ describe('JobQueue Integration', () => {
 
     await pool.query(SCHEMA);
 
-    queue = new JobQueue(pool, { pollIntervalMs: 50 });
+    queue = new JobQueue(pool, 50);
   });
 
   afterAll(async () => {
@@ -56,7 +56,7 @@ describe('JobQueue Integration', () => {
     let processed = false;
 
     queue.register('test-job', async (payload) => {
-      expect(payload.data).toEqual({ msg: 'hello' });
+      expect(payload.payload).toEqual({ msg: 'hello' });
       processed = true;
     });
 

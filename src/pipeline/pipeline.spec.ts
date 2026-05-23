@@ -120,14 +120,6 @@ describe('Pipeline', () => {
   });
 
   it('chains stages via then()', async () => {
-    const result = await Pipeline.of(1)
-      .then(async (x) => x + 1)
-      .then(async (p) => (await p).get() * 3);
-
-    // Pipeline.of(1).then(x => x+1) → Pipeline(2)
-    // Pipeline(2).then(p => p.get() * 3) → resolve Pipeline(2) first → 2.get()=2, *3=6
-    // Actually: .then returns Promise<Pipeline<U>>
-    // Let's test the direct chaining pattern.
     const p1 = await Pipeline.of(5).then(async (x) => x * 2); // Pipeline(10)
     expect(p1.get()).toBe(10);
 

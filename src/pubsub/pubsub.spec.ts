@@ -22,8 +22,8 @@ describe('Bus', () => {
     it('delivers to multiple subscribers on the same topic', async () => {
       const a: string[] = [];
       const b: string[] = [];
-      bus.subscribe<string>('greet', (msg) => a.push(msg));
-      bus.subscribe<string>('greet', (msg) => b.push(msg));
+      bus.subscribe<string>('greet', (msg) => { a.push(msg); });
+      bus.subscribe<string>('greet', (msg) => { b.push(msg); });
       await bus.publish('greet', 'hello');
       expect(a).toEqual(['hello']);
       expect(b).toEqual(['hello']);
@@ -31,7 +31,7 @@ describe('Bus', () => {
 
     it('does not deliver to subscribers on a different topic', async () => {
       const received: string[] = [];
-      bus.subscribe<string>('topic-a', (m) => received.push(m));
+      bus.subscribe<string>('topic-a', (m) => { received.push(m); });
       await bus.publish('topic-b', 'ignored');
       expect(received).toHaveLength(0);
     });
@@ -59,7 +59,7 @@ describe('Bus', () => {
   describe('unsubscribe', () => {
     it('stops delivering to unsubscribed handler', async () => {
       const received: string[] = [];
-      const unsub = bus.subscribe<string>('news', (m) => received.push(m));
+      const unsub = bus.subscribe<string>('news', (m) => { received.push(m); });
       await bus.publish('news', 'first');
       unsub();
       await bus.publish('news', 'second');
@@ -69,8 +69,8 @@ describe('Bus', () => {
     it('only removes the specific subscription, not others', async () => {
       const a: string[] = [];
       const b: string[] = [];
-      const unsubA = bus.subscribe<string>('shared', (m) => a.push(m));
-      bus.subscribe<string>('shared', (m) => b.push(m));
+      const unsubA = bus.subscribe<string>('shared', (m) => { a.push(m); });
+      bus.subscribe<string>('shared', (m) => { b.push(m); });
 
       await bus.publish('shared', 'msg1');
       unsubA();

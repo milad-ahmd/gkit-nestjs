@@ -10,7 +10,7 @@ describe('RedisCache Integration', () => {
   beforeAll(async () => {
     container = await new GenericContainer('redis:7-alpine')
       .withExposedPorts(6379)
-      .withWaitStrategy(Wait.forListeningPort())
+      .withWaitStrategy(Wait.forListeningPorts())
       .start();
 
     client = new Redis({
@@ -18,7 +18,7 @@ describe('RedisCache Integration', () => {
       port: container.getMappedPort(6379),
     });
 
-    cache = new RedisCache<string>(client, { keyPrefix: 'test:' });
+    cache = new RedisCache<string>(client, 'test:');
   });
 
   afterAll(async () => {

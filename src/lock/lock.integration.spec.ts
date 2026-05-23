@@ -1,16 +1,17 @@
 import { GenericContainer, StartedTestContainer, Wait } from 'testcontainers';
-import { DistributedLock } from './index';
+import { Locker, RedisLock } from './index';
 import Redis from 'ioredis';
 
 describe('DistributedLock Integration', () => {
   let container: StartedTestContainer;
   let client: Redis;
-  let locker: DistributedLock;
+  let lock: RedisLock;
+  let locker: Locker;
 
   beforeAll(async () => {
     container = await new GenericContainer('redis:7-alpine')
       .withExposedPorts(6379)
-      .withWaitStrategy(Wait.forListeningPort())
+      .withWaitStrategy(Wait.forListeningPorts())
       .start();
 
     client = new Redis({
@@ -18,7 +19,8 @@ describe('DistributedLock Integration', () => {
       port: container.getMappedPort(6379),
     });
 
-    locker = new DistributedLock(client);
+    lock = new RedisLock(client);
+    locker = new Locker(client, { retryCount: 10, retryIntervalMs: 10 });
   });
 
   afterAll(async () => {
@@ -31,25 +33,25 @@ describe('DistributedLock Integration', () => {
   });
 
   it('should acquire and release a lock', async () => {
-    const lock = await locker.acquire('resource:1', 10000);
-    expect(lock).toBeTruthy();
-    await lock.release();
+    const token = await lock.acquire('resource:1', 10000);
+    expect(token).toBeTruthy();
+    expect(await lock.release('resource:1', token!)).toBe(true);
   });
 
   it('should prevent double acquisition', async () => {
-    const lock1 = await locker.acquire('resource:2', 10000);
-    const lock2 = await locker.tryAcquire('resource:2', 10000);
-    expect(lock2).toBeNull();
-    await lock1.release();
+    const token1 = await lock.acquire('resource:2', 10000);
+    const token2 = await lock.acquire('resource:2', 10000);
+    expect(token2).toBeNull();
+    expect(await lock.release('resource:2', token1!)).toBe(true);
   });
 
   it('should allow re-acquire after release', async () => {
-    const lock1 = await locker.acquire('resource:3', 10000);
-    await lock1.release();
+    const token1 = await lock.acquire('resource:3', 10000);
+    expect(await lock.release('resource:3', token1!)).toBe(true);
 
-    const lock2 = await locker.acquire('resource:3', 10000);
-    expect(lock2).toBeTruthy();
-    await lock2.release();
+    const token2 = await lock.acquire('resource:3', 10000);
+    expect(token2).toBeTruthy();
+    expect(await lock.release('resource:3', token2!)).toBe(true);
   });
 
   it('should execute withLock callback exclusively', async () => {

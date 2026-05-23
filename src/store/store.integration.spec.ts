@@ -13,7 +13,7 @@ describe('Store Integration', () => {
         POSTGRES_PASSWORD: 'secret',
         POSTGRES_DB: 'gkit',
       })
-      .withWaitStrategy(Wait.forListeningPort())
+      .withWaitStrategy(Wait.forListeningPorts())
       .start();
 
     const host = container.getHost();
