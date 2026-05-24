@@ -1,5 +1,4 @@
 import { Pool } from 'pg';
-import { randomUUID } from 'crypto';
 
 export interface Job<T = unknown> {
   id: string;
@@ -13,9 +12,14 @@ export interface Job<T = unknown> {
 
 export type JobHandler<T = unknown> = (job: Job<T>) => Promise<void>;
 
+function parsePayload<T>(raw: unknown): T {
+  if (typeof raw === 'string') return JSON.parse(raw) as T;
+  return raw as T;
+}
+
 export class JobQueue {
   private readonly handlers = new Map<string, JobHandler>();
-  private timer: NodeJS.Timeout | null = null;
+  private readonly timers: NodeJS.Timeout[] = [];
 
   constructor(
     private readonly pool: Pool,
@@ -37,13 +41,17 @@ export class JobQueue {
   }
 
   start(workers = 1): void {
+    if (this.timers.length > 0) return;
     for (let i = 0; i < workers; i++) {
-      this.timer = setInterval(() => this.processBatch().catch(console.error), this.pollIntervalMs);
+      this.timers.push(
+        setInterval(() => this.processBatch().catch(console.error), this.pollIntervalMs),
+      );
     }
   }
 
   stop(): void {
-    if (this.timer) { clearInterval(this.timer); this.timer = null; }
+    for (const timer of this.timers) clearInterval(timer);
+    this.timers.length = 0;
   }
 
   private async processBatch(): Promise<void> {
@@ -51,27 +59,54 @@ export class JobQueue {
     try {
       await client.query('BEGIN');
       const { rows } = await client.query(
-        `SELECT id, type, payload, attempts, max_attempts FROM jobs
-         WHERE status='pending' AND run_at <= NOW() ORDER BY run_at LIMIT 10
-         FOR UPDATE SKIP LOCKED`,
+        `UPDATE jobs SET status='processing' WHERE id IN (
+          SELECT id FROM jobs
+          WHERE status='pending' AND run_at <= NOW()
+          ORDER BY run_at
+          LIMIT 10
+          FOR UPDATE SKIP LOCKED
+        )
+        RETURNING id, type, payload, attempts, max_attempts, run_at, created_at`,
       );
+
       for (const row of rows) {
         const handler = this.handlers.get(row.type);
         if (!handler) {
-          await client.query("UPDATE jobs SET status='failed', last_error=$1 WHERE id=$2", [`no handler for ${row.type}`, row.id]);
+          await client.query(
+            "UPDATE jobs SET status='failed', last_error=$1 WHERE id=$2 AND status='processing'",
+            [`no handler for ${row.type}`, row.id],
+          );
           continue;
         }
+
         const attempts = row.attempts + 1;
         try {
-          await handler({ id: row.id, type: row.type, payload: JSON.parse(row.payload), attempts, maxAttempts: row.max_attempts, runAt: row.run_at, createdAt: row.created_at });
-          await client.query("UPDATE jobs SET status='done', attempts=$1 WHERE id=$2", [attempts, row.id]);
+          await handler({
+            id: row.id,
+            type: row.type,
+            payload: parsePayload(row.payload),
+            attempts,
+            maxAttempts: row.max_attempts,
+            runAt: row.run_at,
+            createdAt: row.created_at,
+          });
+          await client.query(
+            "UPDATE jobs SET status='done', attempts=$1 WHERE id=$2 AND status='processing'",
+            [attempts, row.id],
+          );
         } catch (err: any) {
           if (attempts >= row.max_attempts) {
-            await client.query("UPDATE jobs SET status='dead', attempts=$1, last_error=$2 WHERE id=$3", [attempts, err.message, row.id]);
+            await client.query(
+              "UPDATE jobs SET status='dead', attempts=$1, last_error=$2 WHERE id=$3 AND status='processing'",
+              [attempts, err.message, row.id],
+            );
           } else {
             const backoffMs = Math.min(Math.pow(2, attempts) * 10000, 3600000);
             const runAt = new Date(Date.now() + backoffMs);
-            await client.query("UPDATE jobs SET status='pending', attempts=$1, last_error=$2, run_at=$3 WHERE id=$4", [attempts, err.message, runAt, row.id]);
+            await client.query(
+              "UPDATE jobs SET status='pending', attempts=$1, last_error=$2, run_at=$3 WHERE id=$4 AND status='processing'",
+              [attempts, err.message, runAt, row.id],
+            );
           }
         }
       }

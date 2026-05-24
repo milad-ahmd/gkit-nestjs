@@ -1,6 +1,6 @@
 import { GenericContainer, StartedTestContainer, Wait } from 'testcontainers';
 import { Pool } from 'pg';
-import { JobQueue } from './index';
+import { Job, JobQueue } from './index';
 
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS jobs (
@@ -46,17 +46,20 @@ describe('JobQueue Integration', () => {
     queue = new JobQueue(pool, 50);
   });
 
+  afterEach(() => {
+    queue?.stop();
+  });
+
   afterAll(async () => {
-    queue.stop();
-    await pool.end();
-    await container.stop();
+    await pool?.end();
+    await container?.stop();
   });
 
   it('should enqueue and process a job', async () => {
     let processed = false;
 
-    queue.register('test-job', async (payload) => {
-      expect(payload.payload).toEqual({ msg: 'hello' });
+    queue.register('test-job', async (job: Job<{ msg: string }>) => {
+      expect(job.payload).toEqual({ msg: 'hello' });
       processed = true;
     });
 
@@ -82,8 +85,10 @@ describe('JobQueue Integration', () => {
     });
 
     await queue.enqueue('retry-job', {}, { maxAttempts: 3 });
+    queue.start();
 
-    await new Promise(r => setTimeout(r, 3000));
+    // First retry backoff is 20s (2^1 * 10s).
+    await new Promise(r => setTimeout(r, 25000));
 
     expect(attempts).toBeGreaterThanOrEqual(2);
   });
