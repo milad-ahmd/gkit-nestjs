@@ -143,8 +143,9 @@ describe('JobQueue', () => {
         .mockResolvedValue({ rows: [], rowCount: 0 } as never); // UPDATE + COMMIT
 
       queue.start(1);
-      jest.advanceTimersByTime(500);
-      await jest.runAllTimersAsync();
+      await jest.advanceTimersByTimeAsync(500);
+      queue.stop();
+      await Promise.resolve();
 
       expect(handler).toHaveBeenCalledTimes(1);
       expect(handler).toHaveBeenCalledWith(
@@ -162,8 +163,9 @@ describe('JobQueue', () => {
         .mockResolvedValue({ rows: [], rowCount: 0 } as never);
 
       queue.start(1);
-      jest.advanceTimersByTime(500);
-      await jest.runAllTimersAsync();
+      await jest.advanceTimersByTimeAsync(500);
+      queue.stop();
+      await Promise.resolve();
 
       // Should have issued an UPDATE ... SET status='failed' call.
       const updateCall = (mockClient.query as jest.Mock).mock.calls.find(

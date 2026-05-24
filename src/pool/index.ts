@@ -9,8 +9,14 @@ export class WorkerPool {
   }
 
   async submit<T>(fn: () => Promise<T>): Promise<T> {
-    await this.semaphore.acquire();
-    const task = fn().finally(() => this.semaphore.release());
+    const task = (async () => {
+      await this.semaphore.acquire();
+      try {
+        return await fn();
+      } finally {
+        this.semaphore.release();
+      }
+    })();
     this.pending.push(task);
     return task;
   }

@@ -79,7 +79,7 @@ describe('loadConfig()', () => {
       fail('should have thrown');
     } catch (err) {
       expect((err as ConfigError).message).toContain('DB_URL');
-      expect((err as ConfigError).fields).toContain(expect.stringContaining('DB_URL'));
+      expect((err as ConfigError).fields.some((field) => field.includes('DB_URL'))).toBe(true);
     }
   });
 

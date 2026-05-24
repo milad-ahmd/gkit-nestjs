@@ -162,7 +162,19 @@ export class Locker {
   }
 
   async withLock<T>(key: string, ttlMs: number, fn: () => Promise<T>): Promise<T> {
-    return withLock(this.lock, key, ttlMs, fn);
+    const token = await this.acquire(key, ttlMs);
+
+    const renewInterval = Math.max(Math.floor(ttlMs / 3), 100);
+    const keepalive = setInterval(async () => {
+      await this.lock.renew(key, token, ttlMs);
+    }, renewInterval);
+
+    try {
+      return await fn();
+    } finally {
+      clearInterval(keepalive);
+      await this.release(key, token);
+    }
   }
 }
 

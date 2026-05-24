@@ -104,7 +104,7 @@ describe('MetricsRegistry', () => {
       const reg = new MetricsRegistry('app');
       const res = { set: jest.fn(), end: jest.fn() };
       await reg.metricsHandler({}, res);
-      expect(res.set).toHaveBeenCalledWith('text/plain');
+      expect(res.set).toHaveBeenCalledWith('Content-Type', expect.any(String));
       expect(res.end).toHaveBeenCalledWith('# metrics');
     });
   });

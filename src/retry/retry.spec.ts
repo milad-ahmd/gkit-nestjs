@@ -9,9 +9,6 @@ import {
   RetryOptions,
 } from './index';
 
-// Override setTimeout so tests don't actually wait.
-jest.useFakeTimers();
-
 describe('Backoff', () => {
   describe('fixed', () => {
     it('returns the same delay for every attempt', () => {
@@ -127,7 +124,12 @@ describe('isMaxAttemptsError()', () => {
 
 describe('retry()', () => {
   beforeEach(() => {
+    jest.useFakeTimers();
     jest.clearAllTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   it('resolves immediately on first success', async () => {
@@ -156,10 +158,9 @@ describe('retry()', () => {
     const cause = new Error('always fails');
     const fn = jest.fn().mockRejectedValue(cause);
 
-    const promise = retry(fn, { maxAttempts: 3, backoff: Backoff.fixed(0) });
-    await jest.runAllTimersAsync();
-
-    await expect(promise).rejects.toBeInstanceOf(MaxAttemptsError);
+    await expect(
+      retry(fn, { maxAttempts: 3, backoff: Backoff.fixed(0) }),
+    ).rejects.toBeInstanceOf(MaxAttemptsError);
     expect(fn).toHaveBeenCalledTimes(3);
   });
 
@@ -196,9 +197,7 @@ describe('retry()', () => {
 
   it('defaults to maxAttempts = 3', async () => {
     const fn = jest.fn().mockRejectedValue(new Error('x'));
-    const promise = retry(fn, { backoff: Backoff.fixed(0) });
-    await jest.runAllTimersAsync();
-    await expect(promise).rejects.toBeInstanceOf(MaxAttemptsError);
+    await expect(retry(fn, { backoff: Backoff.fixed(0) })).rejects.toBeInstanceOf(MaxAttemptsError);
     expect(fn).toHaveBeenCalledTimes(3);
   });
 

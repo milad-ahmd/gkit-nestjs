@@ -119,18 +119,18 @@ describe('Pipeline', () => {
     expect(p.get()).toBe(10);
   });
 
-  it('chains stages via then()', async () => {
-    const p1 = await Pipeline.of(5).then(async (x) => x * 2); // Pipeline(10)
+  it('chains stages via pipe()', async () => {
+    const p1 = await Pipeline.of(5).pipe(async (x) => x * 2); // Pipeline(10)
     expect(p1.get()).toBe(10);
 
-    const p2 = await p1.then(async (x) => x - 3); // Pipeline(7)
+    const p2 = await p1.pipe(async (x) => x - 3); // Pipeline(7)
     expect(p2.get()).toBe(7);
   });
 
-  it('propagates errors through then()', async () => {
+  it('propagates errors through pipe()', async () => {
     const p = Pipeline.of(1);
     await expect(
-      p.then(async () => { throw new Error('pipe error'); }),
+      p.pipe(async () => { throw new Error('pipe error'); }),
     ).rejects.toThrow('pipe error');
   });
 });

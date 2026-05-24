@@ -16,13 +16,10 @@ describe('Scheduler', () => {
       sched.every(1000, 'tick', handler);
       sched.start();
 
-      // First call happens immediately.
-      await jest.runAllTimersAsync();
+      await Promise.resolve();
       expect(handler).toHaveBeenCalledTimes(1);
 
-      // Advance one interval → second call.
-      jest.advanceTimersByTime(1000);
-      await jest.runAllTimersAsync();
+      await jest.advanceTimersByTimeAsync(1000);
       expect(handler).toHaveBeenCalledTimes(2);
 
       sched.stop();
@@ -33,12 +30,10 @@ describe('Scheduler', () => {
       const sched = new Scheduler();
       sched.every(500, 'tick', handler);
       sched.start();
-      await jest.runAllTimersAsync();
+      await Promise.resolve();
       sched.stop();
 
-      jest.advanceTimersByTime(2000);
-      await jest.runAllTimersAsync();
-      // Should not have been called again after stop.
+      await jest.advanceTimersByTimeAsync(2000);
       expect(handler).toHaveBeenCalledTimes(1);
     });
 
@@ -57,13 +52,10 @@ describe('Scheduler', () => {
       sched.start();
 
       expect(handler).not.toHaveBeenCalled();
-      jest.advanceTimersByTime(200);
-      await jest.runAllTimersAsync();
+      await jest.advanceTimersByTimeAsync(200);
       expect(handler).toHaveBeenCalledTimes(1);
 
-      // Does not fire again.
-      jest.advanceTimersByTime(500);
-      await jest.runAllTimersAsync();
+      await jest.advanceTimersByTimeAsync(500);
       expect(handler).toHaveBeenCalledTimes(1);
 
       sched.stop();
@@ -84,14 +76,13 @@ describe('Scheduler', () => {
       const sched = new Scheduler(1, onError);
       sched.every(100, 'bad-job', handler);
       sched.start();
+      await Promise.resolve();
+      sched.stop();
 
-      await jest.runAllTimersAsync();
       expect(onError).toHaveBeenCalledWith(
         expect.objectContaining({ name: 'bad-job' }),
         err,
       );
-
-      sched.stop();
     });
 
     it('logs to console.error when no onError is provided and job throws', async () => {
@@ -100,10 +91,10 @@ describe('Scheduler', () => {
       const sched = new Scheduler();
       sched.every(100, 'noisy-job', handler);
       sched.start();
-      await jest.runAllTimersAsync();
+      await Promise.resolve();
+      sched.stop();
 
       expect(consoleSpy).toHaveBeenCalled();
-      sched.stop();
       consoleSpy.mockRestore();
     });
   });
@@ -117,14 +108,11 @@ describe('Scheduler', () => {
       sched.every(1000, 'job2', h2);
       sched.start();
 
-      await jest.runAllTimersAsync();
-      // Both ran immediately at start.
+      await Promise.resolve();
       expect(h1).toHaveBeenCalledTimes(1);
       expect(h2).toHaveBeenCalledTimes(1);
 
-      jest.advanceTimersByTime(500);
-      await jest.runAllTimersAsync();
-      // job1 triggered again; job2 not yet.
+      await jest.advanceTimersByTimeAsync(500);
       expect(h1).toHaveBeenCalledTimes(2);
       expect(h2).toHaveBeenCalledTimes(1);
 

@@ -28,7 +28,11 @@ export class Bus {
     const handlers = this.subs.get(topic) ?? [];
     const promises = handlers
       .filter(s => !s.cancelled)
-      .map(s => Promise.resolve((s.handler as Handler<T>)(payload)).catch(console.error));
+      .map(s =>
+        Promise.resolve()
+          .then(() => (s.handler as Handler<T>)(payload))
+          .catch(err => { console.error(err); }),
+      );
     await Promise.all(promises);
   }
 

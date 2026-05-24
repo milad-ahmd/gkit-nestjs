@@ -52,11 +52,15 @@ export class FeatureFlags {
     // Allow-list check.
     if (flag.allowList?.includes(entityId)) return true;
 
-    // Percentage rollout.
-    if (flag.percentage !== undefined && flag.percentage > 0) {
+    // Percentage rollout (0 means disabled for everyone except allow-list).
+    if (flag.percentage !== undefined) {
+      if (flag.percentage <= 0) return false;
       const bucket = hashBucket(`${key}:${entityId}`, 100);
       return bucket < flag.percentage;
     }
+
+    // Allow-list only: entity not in list.
+    if (flag.allowList && flag.allowList.length > 0) return false;
 
     // Globally enabled with no constraints.
     return true;

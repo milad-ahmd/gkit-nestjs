@@ -63,7 +63,7 @@ describe('DistributedLock Integration', () => {
         await new Promise(r => setTimeout(r, 50));
         results.push(2);
       }),
-      new Promise(r => setTimeout(r, 10)).then(() =>
+      new Promise(r => setTimeout(r, 100)).then(() =>
         locker.withLock('resource:4', 10000, async () => {
           results.push(3);
         })

@@ -44,7 +44,7 @@ export class Pipeline<T> {
 
   static of<T>(value: T): Pipeline<T> { return new Pipeline(value); }
 
-  async then<U>(stage: StageFunc<T, U>): Promise<Pipeline<U>> {
+  async pipe<U>(stage: StageFunc<T, U>): Promise<Pipeline<U>> {
     return new Pipeline(await stage(this.value));
   }
 
