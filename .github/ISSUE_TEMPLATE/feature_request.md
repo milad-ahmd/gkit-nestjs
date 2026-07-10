@@ -3,7 +3,7 @@ name: Feature Request
 about: Propose a new module or enhancement to an existing one
 title: "feat(<module>): <short description>"
 labels: ["enhancement"]
-assignees: miladhzz
+assignees: milad-ahmd
 ---
 
 ## Summary

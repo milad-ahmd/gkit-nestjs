@@ -31,7 +31,7 @@ Be kind and respectful. We follow the [Contributor Covenant v2.1](https://www.co
    ```
 2. Add the upstream remote:
    ```bash
-   git remote add upstream https://github.com/miladhzz/gkit-nestjs.git
+   git remote add upstream https://github.com/milad-ahmd/gkit-nestjs.git
    ```
 3. Create a feature branch:
    ```bash
@@ -107,7 +107,7 @@ Rules:
 4. Add or update tests for changed behaviour
 5. Update TSDoc if public API changes
 6. Fill in the PR template
-7. Request review from `@miladhzz`
+7. Request review from `@milad-ahmd`
 
 New modules must include:
 - `src/<module>/index.ts` with exported types and implementations

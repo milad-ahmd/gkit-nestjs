@@ -11,7 +11,7 @@
 
 **Please do not open a public GitHub issue for security vulnerabilities.**
 
-1. Go to the [Security tab](https://github.com/miladhzz/gkit-nestjs/security/advisories)
+1. Go to the [Security tab](https://github.com/milad-ahmd/gkit-nestjs/security/advisories)
 2. Click **"Report a vulnerability"**
 
 Or email **miladahmadi803@gmail.com** with subject:

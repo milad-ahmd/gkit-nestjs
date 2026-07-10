@@ -3,11 +3,11 @@
 [![Node.js](https://img.shields.io/badge/Node.js-20+-brightgreen.svg)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue.svg)](https://www.typescriptlang.org/)
 [![NestJS](https://img.shields.io/badge/NestJS-10-red.svg)](https://nestjs.com/)
-[![npm](https://img.shields.io/badge/npm-1.0.0-orange.svg)](#)
+[![CI](https://github.com/milad-ahmd/gkit-nestjs/actions/workflows/ci.yml/badge.svg)](https://github.com/milad-ahmd/gkit-nestjs/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 **gkit-nestjs** is a production-grade TypeScript/NestJS toolkit for building reliable, observable services.
-It is a faithful port of [gkit](https://github.com/miladhzz/gkit) (Go) to idiomatic TypeScript with NestJS integration.
+It is a faithful port of [gkit](https://github.com/milad-ahmd/gkit-go) (Go) to idiomatic TypeScript with NestJS integration.
 
 Each package is independently importable and designed for composability.
 
@@ -55,10 +55,12 @@ Each package is independently importable and designed for composability.
 ## Installation
 
 ```bash
-npm install gkit-nestjs
+npm install github:milad-ahmd/gkit-nestjs
 # or
-pnpm add gkit-nestjs
+pnpm add github:milad-ahmd/gkit-nestjs
 ```
+
+Also published to [GitHub Packages](https://github.com/milad-ahmd/gkit-nestjs/packages) as `@milad-ahmd/gkit-nestjs` on each release.
 
 ---
 
@@ -67,7 +69,7 @@ pnpm add gkit-nestjs
 ### retry
 
 ```typescript
-import { retry, Backoff, StopError } from 'gkit-nestjs/retry';
+import { retry, Backoff, StopError } from '@milad-ahmd/gkit-nestjs/retry';
 
 const result = await retry(
   async () => {
@@ -87,7 +89,7 @@ const result = await retry(
 ### pool
 
 ```typescript
-import { WorkerPool } from 'gkit-nestjs/pool';
+import { WorkerPool } from '@milad-ahmd/gkit-nestjs/pool';
 
 const pool = new WorkerPool(16);
 
@@ -98,7 +100,7 @@ await pool.drain(); // wait for all pending tasks
 ### cache
 
 ```typescript
-import { LruCache } from 'gkit-nestjs/cache';
+import { LruCache } from '@milad-ahmd/gkit-nestjs/cache';
 
 const cache = new LruCache<string, Product>(1000);
 cache.set('prod-1', product);
@@ -108,7 +110,7 @@ const p = cache.get('prod-1'); // Product | undefined
 ### async
 
 ```typescript
-import { Future, Semaphore, Stream } from 'gkit-nestjs/async';
+import { Future, Semaphore, Stream } from '@milad-ahmd/gkit-nestjs/async';
 
 // Parallel futures
 const [a, b, c] = await Future.all([fetchA(), fetchB(), fetchC()]);
@@ -128,7 +130,7 @@ const results = await Stream.fromArray(urls)
 ### circuitbreaker
 
 ```typescript
-import { CircuitBreaker, CircuitBreakerState } from 'gkit-nestjs/circuitbreaker';
+import { CircuitBreaker, CircuitBreakerState } from '@milad-ahmd/gkit-nestjs/circuitbreaker';
 
 const cb = new CircuitBreaker({
   failureThreshold: 5,
@@ -143,7 +145,7 @@ const result = await cb.execute(() => externalService.call());
 ### ratelimit
 
 ```typescript
-import { RateLimiter, KeyedRateLimiter, createRateLimitGuard } from 'gkit-nestjs/ratelimit';
+import { RateLimiter, KeyedRateLimiter, createRateLimitGuard } from '@milad-ahmd/gkit-nestjs/ratelimit';
 
 // Global: 100 req/s, burst 20
 const limiter = new RateLimiter(100, 20);
@@ -162,7 +164,7 @@ getData() { ... }
 ### pubsub
 
 ```typescript
-import { Bus } from 'gkit-nestjs/pubsub';
+import { Bus } from '@milad-ahmd/gkit-nestjs/pubsub';
 
 const bus = new Bus();
 
@@ -178,7 +180,7 @@ unsubscribe(); // remove subscription
 ### graceful
 
 ```typescript
-import { GracefulShutdown } from 'gkit-nestjs/graceful';
+import { GracefulShutdown } from '@milad-ahmd/gkit-nestjs/graceful';
 
 const shutdown = new GracefulShutdown({ timeoutMs: 30_000 });
 
@@ -192,7 +194,7 @@ shutdown.listen();
 ### health
 
 ```typescript
-import { HealthRegistry } from 'gkit-nestjs/health';
+import { HealthRegistry } from '@milad-ahmd/gkit-nestjs/health';
 
 const health = new HealthRegistry();
 
@@ -211,7 +213,7 @@ const report = await health.checkAll();
 ### auth
 
 ```typescript
-import { JwtGuard, issueToken, GetClaims } from 'gkit-nestjs/auth';
+import { JwtGuard, issueToken, GetClaims } from '@milad-ahmd/gkit-nestjs/auth';
 
 // Issue a token
 const token = issueToken({ userId: 'u1', roles: ['admin'] }, process.env.JWT_SECRET!, 86400);
@@ -227,7 +229,7 @@ getProfile(@GetClaims() claims: JwtClaims) {
 ### lock
 
 ```typescript
-import { RedisLock, withLock } from 'gkit-nestjs/lock';
+import { RedisLock, withLock } from '@milad-ahmd/gkit-nestjs/lock';
 
 const lock = new RedisLock(redis);
 
@@ -239,7 +241,7 @@ await withLock(lock, 'billing:invoice:123', 30_000, async () => {
 ### saga
 
 ```typescript
-import { Saga, SagaError } from 'gkit-nestjs/saga';
+import { Saga, SagaError } from '@milad-ahmd/gkit-nestjs/saga';
 
 const saga = new Saga<OrderContext>('place-order');
 
@@ -267,7 +269,7 @@ try {
 ### validation
 
 ```typescript
-import { Validator, required, minLength, email, min, max, oneOf } from 'gkit-nestjs/validation';
+import { Validator, required, minLength, email, min, max, oneOf } from '@milad-ahmd/gkit-nestjs/validation';
 
 new Validator()
   .field('email',    userInput.email,    required(), email())
@@ -279,7 +281,7 @@ new Validator()
 ### sched
 
 ```typescript
-import { Scheduler } from 'gkit-nestjs/sched';
+import { Scheduler } from '@milad-ahmd/gkit-nestjs/sched';
 
 const sched = new Scheduler(4, (job, err) => console.error(`${job.name} failed:`, err));
 
@@ -295,7 +297,7 @@ sched.start();
 ### store
 
 ```typescript
-import { Store, migrate } from 'gkit-nestjs/store';
+import { Store, migrate } from '@milad-ahmd/gkit-nestjs/store';
 
 const store = new Store({
   host: 'localhost', port: 5432,

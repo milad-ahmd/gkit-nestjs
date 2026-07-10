@@ -1,5 +1,5 @@
 {
-  "name": "@miladhzz/gkit-nestjs",
+  "name": "@milad-ahmd/gkit-nestjs",
   "version": "1.0.0",
   "description": "Production-grade NestJS/TypeScript toolkit — 24 battle-tested packages",
   "main": "dist/index.js",
@@ -9,7 +9,7 @@
     "src"
   ],
   "publishConfig": {
-    "registry": "https://registry.npmjs.org/",
+    "registry": "https://npm.pkg.github.com",
     "access": "public"
   },
   "scripts": {

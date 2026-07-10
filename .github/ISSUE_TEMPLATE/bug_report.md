@@ -3,7 +3,7 @@ name: Bug Report
 about: Report a reproducible bug in one of the gkit-nestjs modules
 title: "fix(<module>): <short description>"
 labels: ["bug"]
-assignees: miladhzz
+assignees: milad-ahmd
 ---
 
 ## Module
@@ -22,7 +22,7 @@ npm --version
 ## Minimal Reproduction
 
 ```typescript
-import { retry } from '@miladhzz/gkit-nestjs';
+import { retry } from '@milad-ahmd/gkit-nestjs';
 
 // paste minimal reproducer
 ```
